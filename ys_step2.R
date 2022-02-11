@@ -116,7 +116,7 @@ ilce_average <- dist_product_averages %>% group_by(distr_name) %>% summarise(av_
 
 
 
-ilce_map <- read_sf("ist_ilce.shp")
+ilce_map <- read_sf("shapefiles/ist_ilce.shp")
 ilce_map$no_tr = ilce_map$name %>% tolower()
 ilce_map$no_tr <- ilce_map$no_tr %>% stringi::stri_trans_general("latin-ascii")
 ilce_map <- ilce_map %>% select(no_tr,name,geometry)
@@ -131,7 +131,7 @@ final_df <- final_df %>% st_crop( xmin = istbbx[1], xmax = istbbx[3],
 
 
 
-lakes <- read_sf("goller.shp")
+lakes <- read_sf("shapefiles/goller.shp")
 lakes <- lakes %>% filter(type == "multipolygon")
 
 
