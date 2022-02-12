@@ -42,12 +42,6 @@ data_list = []
 #data_list = tmp.apply(lambda x: [np.array(j) for j in x.tolist()],axis=1)
 #data_list = data_list.tolist()
 
-
-
-
-
-
-
 while(i < len(distURL_py)):
     
       driver.get("about:blank")
