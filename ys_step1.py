@@ -38,11 +38,11 @@ i=0
 data_list = []
 
 
-#if recovering the cache
-tmp = pd.read_json("ys_restlist.json")
-tmp = tmp.transpose()
-data_list = tmp.apply(lambda x: [np.array(j) for j in x.tolist()],axis=1)
-data_list = data_list.tolist()
+#if recovering from the cache
+#tmp = pd.read_json("ys_restlist.json")
+#tmp = tmp.transpose()
+#data_list = tmp.apply(lambda x: [np.array(j) for j in x.tolist()],axis=1)
+#data_list = data_list.tolist()
 
 
 
@@ -53,7 +53,7 @@ data_list = data_list.tolist()
 while(i < len(distURL_py)):
     
       driver.get("about:blank")
-      driver.get(rootURL+distURL_py[i]+"#ors:false")
+        #using selenium to be able to get the list of the restaurants that are closed at a given time, as it is a JS action that displays all the restaurants
 
       rest_count = int(driver.find_element("class name","ys-result-count").find_element("tag name","span").text)
       current_count = len(driver.find_elements("class name","restaurantName"))
@@ -67,7 +67,7 @@ while(i < len(distURL_py)):
       page_src = driver.page_source
 
 
-
+        #call rvest from R to do the job, well, because it is amazing :)
       page_src = xml2.read_html(page_src)
       rest_list = rvest.html_nodes(page_src,".restaurant-main-info")
       rest_time = rvest.html_attr(rvest.html_node(rest_list,".head"),"data-deliverytime")
