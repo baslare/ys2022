@@ -10,13 +10,11 @@ from selenium.webdriver.common.keys import Keys
 import pandas as pd
 import numpy as np
 import json
-
-
-
 import rpy2.robjects as robjects
 from rpy2.robjects.packages import importr
 from rpy2.robjects import pandas2ri
-#Must be activated
+
+#Must be activated first
 pandas2ri.activate()
 
 
