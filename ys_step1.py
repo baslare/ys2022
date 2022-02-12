@@ -42,7 +42,7 @@ data_list = []
 #data_list = tmp.apply(lambda x: [np.array(j) for j in x.tolist()],axis=1)
 #data_list = data_list.tolist()
 
-while(i < len(distURL_py)):
+while(i < (len(distURL_py)-1)):
     
       driver.get("about:blank")
         #using selenium to be able to get the list of the restaurants that are closed at a given time, as it is a JS action that displays all the restaurants
