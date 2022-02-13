@@ -74,7 +74,7 @@ while(i <= length(unique_url)){
   
 }
 
-
+require(tidyverse)
 
 all_list2 <- lapply(all_list, function(x) x[[1]])
 rest_names <- sapply(all_list, function(x) x[[2]])
@@ -129,10 +129,13 @@ istbbx <- c(28.3025,	40.7933,	29.5223,	41.3812)
 final_df <- final_df %>% st_crop( xmin = istbbx[1], xmax = istbbx[3],
                                  ymin = istbbx[2], ymax = istbbx[4])
 
+final_df <- final_df %>% st_cast("MULTIPOLYGON")
+
 
 
 lakes <- read_sf("shapefiles/goller.shp")
 lakes <- lakes %>% filter(type == "multipolygon")
+lakes <- lakes %>% st_cast("MULTIPOLYGON")
 
 
 
@@ -164,8 +167,9 @@ ggplot(final_df) +
   scale_x_continuous(limits = c(istbbx[1],istbbx[3])) +
   scale_y_continuous(limits=c(istbbx[2],istbbx[4])) +
   ggtitle(label = "İstanbul İlçelerinde \n Ortalama Lahmacun Fiyatları (TL)",subtitle = 'Şubat 2022') + labs(caption = "Efe Başlar - @baslare")
-  
 
+#interactive
+#plotly::ggplotly()
   
 ggsave("ist_lahmacun_2022.jpeg",dpi = 500,height = 14,width = 24,units = "cm")
   
