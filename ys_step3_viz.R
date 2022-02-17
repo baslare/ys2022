@@ -5,6 +5,8 @@ require(ggsci)
 require(extrafont) 
 require(plotly)
 
+source("ys_functions.R")
+
 
 #all_list <- jsonlite::fromJSON("C:/Users/Efe/Desktop/Projeler/ys2022_files/ys_all_list.json")
 #ys_restdist_df <- jsonlite::fromJSON("C:/Users/Efe/Desktop/Projeler/ys2022_files/ys_restdist_df.json")
