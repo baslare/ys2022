@@ -3,6 +3,7 @@ require(rvest)
 require(sf)
 require(ggsci)
 require(extrafont) 
+require(plotly)
 
 
 ys_dist <- jsonlite::fromJSON("ys_restlist.json")
