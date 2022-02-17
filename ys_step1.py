@@ -88,9 +88,12 @@ while(i < (len(distURL_py)-1)):
       
       i += 1
       
-      out_file = open("ys_disturl.json", "w",encoding='utf-8')
-      pd.Series(distURL_py).to_json(out_file,  force_ascii= False )
-      out_file.close()
+      
+      with open("ys_disturl.json", "w",encoding='utf-8') as out_file:
+          pd.Series(distURL_py).to_json(out_file,  force_ascii= False )
+      
+        
+      
   
       
       
