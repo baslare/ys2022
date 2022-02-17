@@ -81,16 +81,14 @@ while(i < (len(distURL_py)-1)):
       
       print(i, "of", len(distURL_py))
       if i % 10 == 0:
-          out_file = open("ys_restlist.json", "w",encoding='utf-8')
-          data_list_series = pd.Series(data_list)
-          data_list_series.to_json(out_file,  force_ascii= False )
-          out_file.close()
+          with open("ys_restdist.json", "w",encoding='utf-8') as out_file:
+              pd.Series(distURL_py).to_json(out_file,  force_ascii= False )
       
       i += 1
       
       
-      with open("ys_disturl.json", "w",encoding='utf-8') as out_file:
-          pd.Series(distURL_py).to_json(out_file,  force_ascii= False )
+with open("ys_disturl.json", "w",encoding='utf-8') as out_file:
+   pd.Series(distURL_py).to_json(out_file,  force_ascii= False )
       
         
       
