@@ -93,14 +93,25 @@ df_master$prices <- df_master$prices %>% str_remove("[A-z]+") %>% str_replace(",
 ys_dist_df$min_package_tl <- ys_dist_df$min_package_tl  %>% str_remove("[A-z]+") %>% str_replace(",",".") %>% str_trim() %>% as.numeric()
 
 
+
+product_name <- "Burger"
+
 df_sub <- df_master %>% 
   filter(str_detect(products,"Lahmacun")) %>% 
   filter(!str_detect(products,"Menü|[0-9]+|Kebap|Dürüm|Döner|Aras.|Pizza|Duble|Pide")) %>% 
   filter(!str_detect(products,"F.nd.k"))
 
-rest_product_averages <- df_sub %>% group_by(rest_name) %>% summarise(av_price=mean(prices))
+df_sub <- df_master %>% 
+  filter(str_detect(products, product_name)) %>% 
+  filter(!str_detect(products,"Mini|Falafel|Ekme.i|sos|Süt|Domatex|Sosu$|Sos$|Baharat|Mayone.|Ket.ap|Islak|Menü|[0-9]+|Kebap|Dürüm|Döner|Aras.|Pizza|Duble|Pide")) %>% 
+  filter(!str_detect(products,"F.nd.k"))
 
-dist_product_averages <- left_join(ys_dist_df,rest_product_averages,by=c("rest_url"="rest_name"))
+rest_product_averages <- df_sub %>% group_by(rest_name) %>% summarise(av_price=mean(prices))
+rest_product_median <- df_sub %>% group_by(rest_name) %>% summarise(av_price=median(prices))
+rest_product_min <- df_sub %>% group_by(rest_name) %>% summarise(av_price=min(prices))
+rest_product_max <- df_sub %>% group_by(rest_name) %>% summarise(av_price=max(prices))
+
+dist_product_averages <- left_join(ys_dist_df,rest_product_median,by=c("rest_url"="rest_name"))
 
 dist_product_averages <- dist_product_averages %>% drop_na()
 dist_product_averages$district_name <- dist_product_averages$district %>% str_split("/")
@@ -131,6 +142,7 @@ final_df <- final_df %>% st_crop( xmin = istbbx[1], xmax = istbbx[3],
                                  ymin = istbbx[2], ymax = istbbx[4])
 
 final_df <- final_df %>% st_cast("MULTIPOLYGON")
+final_df <- final_df %>% mutate(price_text=as.character(round(av_price,digits=1)))
 
 
 
@@ -139,16 +151,19 @@ lakes <- lakes %>% filter(type == "multipolygon")
 lakes <- lakes %>% st_cast("MULTIPOLYGON")
 
 
+quant_10 <- final_df$av_price %>% quantile(0.1,na.rm = T)
+quant_90 <- final_df$av_price %>% quantile(0.9,na.rm = T)
+
 
 ggplot(final_df) + 
   geom_sf(aes(fill=av_price),color="white",show.legend = FALSE,size=0.2) + 
   geom_sf(data=lakes,color="transparent",fill="white") +
-  geom_sf_text(aes(label=as.character(round(av_price,digits=1)),
-                   size= 2 + log(10 + dist_area)),
-               color="#8a1a04",
+  geom_sf_text(aes(label=price_text,
+                   size= 2 + log(10 + dist_area),group=name),
+               color="#0f1852",
                show.legend = FALSE,
                family="Noto Sans") + 
-  scale_fill_material("yellow",oob=scales::squish,limits=c(15,20)) + 
+  scale_fill_material("blue",oob=scales::squish,limits=c(quant_10,quant_90)) +  #15,20 for the lahmacun map
   scale_size(range = c(2.5,5)) +
   theme_bw() +
   theme(axis.line = element_blank(),
@@ -157,20 +172,22 @@ ggplot(final_df) +
         panel.grid = element_blank(),
         panel.background = element_blank(),
         axis.title = element_blank(),
+        text = element_text(color="#0f1852",family = "Noto Sans"),
         panel.border = element_rect(color="gray",size=0.3),
-        plot.title = element_text(color="#8a1a04",hjust = 0.5,size = 10),
-        plot.caption = element_text(color="#8a1a04",size=8),
-        plot.subtitle = element_text(color="#8a1a04",hjust = 0.5,size = 8),
-        text = element_text(family = "Noto Sans")
-        
-        
+        plot.title = element_text(hjust = 0.5,size = 10),
+        plot.caption = element_text(size=8),
+        plot.subtitle = element_text(hjust = 0.5,size = 8),
         ) +
   scale_x_continuous(limits = c(istbbx[1],istbbx[3])) +
   scale_y_continuous(limits=c(istbbx[2],istbbx[4])) +
-  ggtitle(label = "İstanbul İlçelerinde \n Ortalama Lahmacun Fiyatları (TL)",subtitle = 'Şubat 2022') + labs(caption = "Efe Başlar - @baslare")
+  ggtitle(label = paste("İstanbul İlçelerinde \n Ortalama", product_name ,"Fiyatları (TL)"),subtitle = 'Şubat 2022') + labs(caption = "Efe Başlar - @baslare")
+
+#lahmacun: ggsci - yellow / text: #8a1a04
+#burger: ggsci - blue / text: #0f1852
+
 
 #interactive
-#plotly::ggplotly()
+plotly::ggplotly()
   
 ggsave("ist_lahmacun_2022.jpeg",dpi = 500,height = 14,width = 24,units = "cm")
   
