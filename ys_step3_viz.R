@@ -14,7 +14,7 @@ ys_restdist_df <- jsonlite::fromJSON("C:/Users/Efe/Desktop/Projeler/ys2022_files
 #ys_url <- jsonlite::fromJSON("C:/Users/Efe/Desktop/Projeler/ys2022_files/ys_disturl.json")
 df_master <- readRDS("C:/Users/Efe/Desktop/Projeler/ys2022_files/df_master.RDS")
 ibb23haz <- read.csv("C:/Users/Efe/Desktop/Projeler/esmt_flash/ibb23Haz/ibb23Haz/ibb23Haz.csv",encoding = "UTF-8")
-dnm <- read.csv("dnm.csv",header = FALSE)
+dnm <- read.csv("C:/Users/Efe/Desktop/Projeler/ys2022_files/dnm.csv",header = FALSE)
 ist_mah_demo_df <- readRDS("C:/Users/Efe/Desktop/Projeler/ys2022_files/ist_mah_demo_df.rds")
 ist_ilce_demo_df <- readRDS("C:/Users/Efe/Desktop/Projeler/ys2022_files/ist_ilce_demo_df.rds")
 
@@ -26,7 +26,7 @@ ist_ilce_demo_df <- readRDS("C:/Users/Efe/Desktop/Projeler/ys2022_files/ist_ilce
 
 
   
-  product_name <- "Lahmacun"
+  product_name <- "Tavuk Döner"
   
   if(product_name=="Lahmacun"){
     df_sub <- df_master %>% 
@@ -66,25 +66,13 @@ ist_ilce_demo_df <- readRDS("C:/Users/Efe/Desktop/Projeler/ys2022_files/ist_ilce
   
   #calculate the averages in each restaurant for the desired group  
   rest_product_averages <- df_sub %>% group_by(rest_name) %>% summarise(av_price=mean(prices))
-  #alternative statistics
-  #rest_product_median <- df_sub %>% group_by(rest_name) %>% summarise(av_price=median(prices))
-  #rest_product_min <- df_sub %>% group_by(rest_name) %>% summarise(av_price=min(prices))
-  #rest_product_max <- df_sub %>% group_by(rest_name) %>% summarise(av_price=max(prices))
-  
-  
-  #merge the product averages for each restaurant df with other restaurant statistics
   
   ys_restdist_df$min_package_tl <- ys_restdist_df$min_package_tl %>% scales::squish(range = c(10,max(ys_restdist_df$min_package_tl)))
   
   
   dist_product_averages <- left_join(ys_restdist_df,rest_product_averages,by=c("rest_url"="rest_name"))
   dist_product_averages <- dist_product_averages %>% drop_na()
-  
-  
   rest_data_unique <- dist_product_averages %>% distinct(rest_url,.keep_all = T)
-  
-  
-  
   dist_product_averages <- dist_product_averages %>% group_by(district) %>% mutate(weighted_md_amount = (1/(min_package_tl))/sum(1/(min_package_tl)),
                                                                              weighted_md_time = 1/(min_delivery_time)/sum(1/(min_delivery_time)) ,
                                                                              weighted_both = 1/((min_package_tl*min_delivery_time))/sum(1/((min_package_tl*min_delivery_time)))) %>% 
@@ -119,6 +107,8 @@ ist_ilce_demo_df <- readRDS("C:/Users/Efe/Desktop/Projeler/ys2022_files/ist_ilce
   
   
   
+  ##### visualization #####
+  
   
   ilce_average <- dist_product_averages %>%
     group_by(distr_name) %>% 
@@ -132,13 +122,13 @@ ist_ilce_demo_df <- readRDS("C:/Users/Efe/Desktop/Projeler/ys2022_files/ist_ilce
   ilce_map$no_tr = ilce_map$name %>% stringi::stri_trans_general("latin-ascii")
   ilce_map$no_tr <- ilce_map$no_tr %>% tolower()
   ilce_map <- ilce_map %>% select(no_tr,name,geometry)
-  
-  #ist_ilce_demo_df <- get_ist_demo()
+
   
   
   ilce_map <- left_join(ilce_map,ist_ilce_demo_df,by="no_tr")
   
   final_df <- left_join(ilce_map,ilce_average,by=c("no_tr"="distr_name"))
+  
   final_df$dist_area <- (sf::st_area(final_df)/1000000) %>% as.character() %>%  as.numeric() %>% scales::squish(c(35,200))
   
   istbbx <- c(28.3025,	40.7933,	29.5223,	41.3812)
@@ -153,6 +143,8 @@ ist_ilce_demo_df <- readRDS("C:/Users/Efe/Desktop/Projeler/ys2022_files/ist_ilce
 
   final_df <- final_df %>% st_cast("MULTIPOLYGON")
   final_df <- final_df %>% mutate(price_text=as.character(round(av_price,digits=1)))
+  
+  
   
   
   
@@ -214,11 +206,12 @@ ggplot(rest_product_averages) +
         panel.background = element_rect(fill="#faf5ed"),
         text = element_text(family = "Noto Sans"))
 
+
 ggsave("ist_lahmacun_hist.jpeg",dpi = 500,height = 14,width = 24,units = "cm")
 
 
 
-#### regression #####
+####  OLS regression #####
 
 nb_product_averages <- dist_product_averages
 nb_product_averages$district_name <- nb_product_averages$district_name %>% str_remove("ilcesi")
@@ -229,20 +222,12 @@ nb_product_averages$district_name <- nb_product_averages$district_name %>% str_r
 nb_product_averages$district_name <- nb_product_averages$district_name %>% str_replace("(?<=([0-9]))\\s",". ")
 nb_product_averages$district_name <- ifelse(nb_product_averages$district_name %>% str_detect("atakent"),"atakent",nb_product_averages$district_name)
 
-#dnm <- left_join(dist_product_averages, ist_mah_demo_df, by=c("district_name"="no_tr_mah","distr_name"="no_tr"))
-#write.csv(dnm,"dnm.csv")
-
-
-
-
 
 dnm <- dnm %>% select(V2,V9)
 dnm$V9 <- dnm$V9 %>% tolower() %>%  str_trim()
 
 nb_product_averages <- left_join(nb_product_averages,dnm,by=c("district"="V2"))
 nb_product_averages$V9 <- nb_product_averages$V9 %>% str_replace("catalcesme","catalmese")
-
-
 
 colnam <- colnames(nb_product_averages)[which(sapply(nb_product_averages,is.numeric))]
 
@@ -270,8 +255,13 @@ ibb23haz$no_tr_mah <- ibb23haz$no_tr_mah %>% str_replace("merkez ataturk","atatu
 full_df <- left_join(nb_product_averages,ibb23haz,by=c("V9"="no_tr_mah","distr_name"="no_tr"))
 full_df <- full_df %>% mutate(akp_share = akp_06/voter_06,
                               chp_share = chp_06/voter_06,
+                              chp_akp_diff = chp_share - akp_share,
+                              youth_diff = youth_male_share - youth_female_share
 )
 
 
 full_df <- full_df %>% filter(pop > 500)
-dd <- lm(av_price_amount ~ youth_male_share + youth_female_share + pop + pop_density + weighted_rating + uni_grad_share + chp_share + akp_share + rest_count,data=full_df)
+
+model<- lm(av_price_amount ~ youth_diff + log(pop) + weighted_rating + uni_grad_share + chp_akp_diff + rest_count,data=full_df)
+summary(model)
+
